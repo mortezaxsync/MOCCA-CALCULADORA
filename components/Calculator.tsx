@@ -36,7 +36,7 @@ export const Calculator: React.FC = () => {
   const handleCalculate = () => {
     // Helper to parse the formatted string (e.g. "1.234,56" -> 1234.56)
     const parseFormattedNumber = (str: string) => {
-      if (!str) return NaN;
+      if (!str) return 0; // Treat empty as 0 to allow optional inputs if needed, though validation checks below.
       // Remove thousand separators (.) and replace decimal separator (,) with dot (.)
       const cleanStr = str.replace(/\./g, '').replace(',', '.');
       return parseFloat(cleanStr);
@@ -45,27 +45,21 @@ export const Calculator: React.FC = () => {
     const flour = parseFormattedNumber(flourSample);
     const bran = parseFormattedNumber(branSample);
 
-    if (isNaN(flour) || isNaN(bran)) {
-      alert("Por favor, insira valores numéricos válidos.");
-      return;
-    }
-
+    // Basic validation: Ensure at least one value is provided to calculate total
     if (flour < 0 || bran < 0) {
       alert("Os valores não podem ser negativos.");
       return;
     }
 
-    // Formulas provided in the requirements
-    // farinha_hora = farinha_amostra * 6 * 60
+    // Formulas
+    // hourly_production = sample * 6 * 60
     const flourPerHour = flour * 6 * 60;
-    
-    // farelo_hora = farelo_amostra * 6 * 60
     const branPerHour = bran * 6 * 60;
     
-    // total_hora = farinha_hora + farelo_hora
+    // total_hora = sum of all components
     const totalPerHour = flourPerHour + branPerHour;
     
-    // rendimento = (farinha_hora / total_hora) * 100
+    // Yield Percentages
     // Avoid division by zero
     const yieldPercentage = totalPerHour > 0 ? (flourPerHour / totalPerHour) * 100 : 0;
 
@@ -77,7 +71,7 @@ export const Calculator: React.FC = () => {
     });
   };
 
-  const formatNumber = (num: number, maximumSignificantDigits = 4) => {
+  const formatNumber = (num: number) => {
     return num.toLocaleString('pt-BR', { maximumFractionDigits: 1, minimumFractionDigits: 0 });
   };
 
@@ -86,13 +80,13 @@ export const Calculator: React.FC = () => {
     { name: 'Farelo', value: results.branPerHour },
   ] : [];
 
-  const COLORS = ['#2563EB', '#F87171']; // Blue and Red to match cards
+  const COLORS = ['#2563EB', '#F87171']; // Blue, Red
 
   return (
     <div className="w-full px-8 pb-8">
         
         {/* Input Section */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           <div>
             <label htmlFor="flourInput" className="block text-gray-700 font-semibold mb-2 ml-1">
               Peso da amostra de Farinha (kg)
@@ -125,7 +119,7 @@ export const Calculator: React.FC = () => {
 
           <button
             onClick={handleCalculate}
-            className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-lg px-5 py-4 text-center transition-colors shadow-lg shadow-blue-700/30 uppercase tracking-wide"
+            className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-lg px-5 py-4 text-center transition-colors shadow-lg shadow-blue-700/30 uppercase tracking-wide mt-2"
           >
             Calcular
           </button>
@@ -134,6 +128,7 @@ export const Calculator: React.FC = () => {
         {/* Results Section */}
         {results && (
           <div className="mt-8 space-y-4 animate-fadeIn">
+            {/* Row 1: Products */}
             <div className="grid grid-cols-2 gap-4">
               <ResultCard
                 label="Farinha por hora"
@@ -149,6 +144,7 @@ export const Calculator: React.FC = () => {
               />
             </div>
             
+            {/* Row 2: Total & Yield */}
             <div className="grid grid-cols-2 gap-4">
                <ResultCard
                 label="Total por hora"
@@ -157,7 +153,7 @@ export const Calculator: React.FC = () => {
                 colorTheme="green"
               />
               <ResultCard
-                label="Rendimento Farinha"
+                label="Rendimento % de Farinha"
                 value={`${results.yieldPercentage.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`}
                 unit=""
                 colorTheme="yellow"

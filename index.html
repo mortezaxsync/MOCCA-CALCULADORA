@@ -2,14 +2,29 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#3b4e8d" />
+    <meta name="description" content="Calculadora especializada para análise de rendimento de farinha e farelo." />
+    
+    <!-- Configurações para Web App no Android e iOS -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="application-name" content="MoccaApp" />
+    
     <title>Mocca Moinho Calculator</title>
+    
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Nota: Para um app 100% offline no Android Studio, recomenda-se instalar o Tailwind localmente ao invés de usar CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Allerta+Stencil&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f3f4f6;
+        background-color: #e2e8f0; /* Matches slate-200 */
+        /* Previne o efeito de 'bounce' no scroll em alguns webviews */
+        overscroll-behavior-y: none;
       }
       .font-stencil {
         font-family: 'Allerta Stencil', sans-serif;

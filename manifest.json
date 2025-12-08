@@ -1,0 +1,26 @@
+{
+  "short_name": "MoccaApp",
+  "name": "Mocca Moinho Calculadora",
+  "description": "Calculadora de produção e rendimento para moinho de trigo.",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1046/1046441.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1046/1046441.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#3b4e8d",
+  "background_color": "#e2e8f0",
+  "orientation": "portrait",
+  "categories": ["productivity", "utilities"]
+}
