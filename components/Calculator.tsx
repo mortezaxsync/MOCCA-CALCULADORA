@@ -1,25 +1,28 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { ResultCard } from './ResultCard';
 import { CalculationResult } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { User } from 'firebase/auth';
+import { saveExtraction, signInWithGoogle } from '../firebase';
 
-export const Calculator: React.FC = () => {
+interface CalculatorProps {
+  onShowHistory: () => void;
+  currentUser: User | null;
+  onLoginSuccess: (user: User) => void;
+}
+
+export const Calculator: React.FC<CalculatorProps> = ({ onShowHistory, currentUser, onLoginSuccess }) => {
   const [flourSample, setFlourSample] = useState<string>('');
   const [branSample, setBranSample] = useState<string>('');
   const [results, setResults] = useState<CalculationResult | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   // Format the input value as if dividing by 100 (e.g., 123 -> 1,23)
   const formatValue = (value: string) => {
-    // Remove all non-digit characters
     const digits = value.replace(/\D/g, '');
-    
     if (!digits) return '';
-
-    // Convert to number and divide by 100 to get 2 decimal places
     const numberValue = Number(digits) / 100;
-    
-    // Format to PT-BR string (uses comma for decimals)
     return numberValue.toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -35,10 +38,8 @@ export const Calculator: React.FC = () => {
   };
 
   const handleCalculate = () => {
-    // Helper to parse the formatted string (e.g. "1.234,56" -> 1234.56)
     const parseFormattedNumber = (str: string) => {
-      if (!str) return 0; // Treat empty as 0 to allow optional inputs if needed, though validation checks below.
-      // Remove thousand separators (.) and replace decimal separator (,) with dot (.)
+      if (!str) return 0;
       const cleanStr = str.replace(/\./g, '').replace(',', '.');
       return parseFloat(cleanStr);
     };
@@ -46,22 +47,18 @@ export const Calculator: React.FC = () => {
     const flour = parseFormattedNumber(flourSample);
     const bran = parseFormattedNumber(branSample);
 
-    // Basic validation: Ensure at least one value is provided to calculate total
     if (flour < 0 || bran < 0) {
       alert("Os valores não podem ser negativos.");
       return;
     }
 
-    // Formulas
-    // hourly_production = sample * 6 * 60
+    if (flour === 0 && bran === 0) {
+       return;
+    }
+
     const flourPerHour = flour * 6 * 60;
     const branPerHour = bran * 6 * 60;
-    
-    // total_hora = sum of all components
     const totalPerHour = flourPerHour + branPerHour;
-    
-    // Yield Percentages
-    // Avoid division by zero
     const yieldPercentage = totalPerHour > 0 ? (flourPerHour / totalPerHour) * 100 : 0;
 
     setResults({
@@ -71,10 +68,50 @@ export const Calculator: React.FC = () => {
       yieldPercentage
     });
 
-    // Scroll to results after a short delay to allow rendering
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
+  };
+
+  const handleSave = async () => {
+    if (!results) return;
+
+    let user = currentUser;
+
+    // Se não estiver logado, tenta logar
+    if (!user) {
+      user = await signInWithGoogle();
+      if (user) {
+        onLoginSuccess(user);
+      } else {
+        return; // Login falhou ou cancelado
+      }
+    }
+
+    setIsSaving(true);
+    const parseFormattedNumber = (str: string) => {
+        if (!str) return 0;
+        const cleanStr = str.replace(/\./g, '').replace(',', '.');
+        return parseFloat(cleanStr);
+    };
+    
+    // Salvar os dados brutos da amostra
+    const rawFlour = parseFormattedNumber(flourSample);
+    const rawBran = parseFormattedNumber(branSample);
+
+    const success = await saveExtraction(user, {
+      flour: rawFlour,
+      bran: rawBran,
+      yieldPercentage: results.yieldPercentage
+    });
+
+    setIsSaving(false);
+
+    if (success) {
+      alert("Extração salva na nuvem com sucesso!");
+    } else {
+      alert("Erro ao salvar. Verifique sua conexão.");
+    }
   };
 
   const formatNumber = (num: number) => {
@@ -86,7 +123,7 @@ export const Calculator: React.FC = () => {
     { name: 'Farelo', value: results.branPerHour },
   ] : [];
 
-  const COLORS = ['#2563EB', '#F87171']; // Blue (Farinha), Red (Farelo)
+  const COLORS = ['#2563EB', '#F87171'];
 
   return (
     <div className="w-full px-6 pb-8">
@@ -123,12 +160,21 @@ export const Calculator: React.FC = () => {
             />
           </div>
 
-          <button
-            onClick={handleCalculate}
-            className="w-full text-white bg-[#3b4e8d] hover:bg-[#2d3b6b] focus:ring-4 focus:ring-blue-300 font-black rounded-xl text-lg px-5 py-5 text-center transition-all shadow-lg shadow-blue-900/20 uppercase tracking-widest mt-2 active:scale-[0.98]"
-          >
-            Calcular Rendimento
-          </button>
+          <div className="flex flex-col gap-3 pt-2">
+            <button
+              onClick={handleCalculate}
+              className="w-full text-white bg-[#3b4e8d] hover:bg-[#2d3b6b] focus:ring-4 focus:ring-blue-300 font-black rounded-xl text-lg px-5 py-4 text-center transition-all shadow-lg shadow-blue-900/20 uppercase tracking-widest active:scale-[0.98]"
+            >
+              Calcular Rendimento
+            </button>
+            
+            <button
+              onClick={onShowHistory}
+              className="w-full text-slate-600 bg-slate-200 hover:bg-slate-300 font-bold rounded-xl text-sm px-5 py-3 text-center transition-all uppercase tracking-wider active:scale-[0.98]"
+            >
+              Extrações Anteriores
+            </button>
+          </div>
         </div>
 
         {/* Results Section */}
@@ -144,7 +190,7 @@ export const Calculator: React.FC = () => {
                </div>
             </div>
 
-            {/* Row 1: Products */}
+            {/* Cards Grid */}
             <div className="grid grid-cols-2 gap-4">
               <ResultCard
                 label="Farinha / Hora"
@@ -158,11 +204,7 @@ export const Calculator: React.FC = () => {
                 unit="kg/h"
                 colorTheme="red"
               />
-            </div>
-            
-            {/* Row 2: Total & Yield */}
-            <div className="grid grid-cols-2 gap-4">
-               <ResultCard
+              <ResultCard
                 label="Total Processado"
                 value={`${formatNumber(results.totalPerHour)}`}
                 unit="kg/h"
@@ -176,7 +218,7 @@ export const Calculator: React.FC = () => {
               />
             </div>
 
-            {/* Visual Chart - Donut with Center Text */}
+            {/* Visual Chart */}
             <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex flex-col items-center relative overflow-hidden">
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Gráfico de Rendimento</h3>
                
@@ -220,16 +262,27 @@ export const Calculator: React.FC = () => {
                  </div>
                </div>
 
-               {/* Legend */}
-               <div className="flex w-full justify-center gap-6 mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#2563EB]"></div>
-                    <span className="text-sm font-semibold text-slate-600">Farinha</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#F87171]"></div>
-                    <span className="text-sm font-semibold text-slate-600">Farelo</span>
-                  </div>
+               {/* Botão de Guardar na Nuvem */}
+               <div className="w-full mt-6 border-t border-slate-100 pt-6">
+                 <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="w-full flex items-center justify-center gap-2 bg-[#4285F4] hover:bg-[#3367d6] text-white font-bold py-3 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-70"
+                 >
+                   {isSaving ? (
+                     <span>Salvando...</span>
+                   ) : (
+                     <>
+                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                         <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z" />
+                       </svg>
+                       GUARDAR EXTRAÇÃO
+                     </>
+                   )}
+                 </button>
+                 <p className="text-center text-[10px] text-slate-400 mt-2">
+                   Salva no histórico da sua Conta Google
+                 </p>
                </div>
             </div>
 
