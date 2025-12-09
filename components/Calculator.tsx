@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ResultCard } from './ResultCard';
 import { CalculationResult } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -7,6 +7,7 @@ export const Calculator: React.FC = () => {
   const [flourSample, setFlourSample] = useState<string>('');
   const [branSample, setBranSample] = useState<string>('');
   const [results, setResults] = useState<CalculationResult | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Format the input value as if dividing by 100 (e.g., 123 -> 1,23)
   const formatValue = (value: string) => {
@@ -69,6 +70,11 @@ export const Calculator: React.FC = () => {
       totalPerHour,
       yieldPercentage
     });
+
+    // Scroll to results after a short delay to allow rendering
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const formatNumber = (num: number) => {
@@ -80,16 +86,16 @@ export const Calculator: React.FC = () => {
     { name: 'Farelo', value: results.branPerHour },
   ] : [];
 
-  const COLORS = ['#2563EB', '#F87171']; // Blue, Red
+  const COLORS = ['#2563EB', '#F87171']; // Blue (Farinha), Red (Farelo)
 
   return (
-    <div className="w-full px-8 pb-8">
+    <div className="w-full px-6 pb-8">
         
         {/* Input Section */}
-        <div className="space-y-5">
+        <div className="space-y-6 bg-slate-50 p-6 rounded-2xl border border-slate-200">
           <div>
-            <label htmlFor="flourInput" className="block text-gray-700 font-semibold mb-2 ml-1">
-              Peso da amostra de Farinha (kg)
+            <label htmlFor="flourInput" className="block text-slate-600 font-bold mb-2 ml-1 text-sm uppercase tracking-wide">
+              Amostra de Farinha (kg)
             </label>
             <input
               id="flourInput"
@@ -98,13 +104,13 @@ export const Calculator: React.FC = () => {
               placeholder="0,00"
               value={flourSample}
               onChange={(e) => handleInputChange(e, setFlourSample)}
-              className="w-full bg-slate-50 border border-slate-300 text-gray-900 text-lg rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-4 shadow-sm transition-all outline-none"
+              className="w-full bg-white border border-slate-300 text-slate-800 text-2xl font-semibold rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block p-4 shadow-sm transition-all outline-none text-center"
             />
           </div>
 
           <div>
-            <label htmlFor="branInput" className="block text-gray-700 font-semibold mb-2 ml-1">
-              Peso da amostra de Farelo (kg)
+            <label htmlFor="branInput" className="block text-slate-600 font-bold mb-2 ml-1 text-sm uppercase tracking-wide">
+              Amostra de Farelo (kg)
             </label>
             <input
               id="branInput"
@@ -113,31 +119,41 @@ export const Calculator: React.FC = () => {
               placeholder="0,00"
               value={branSample}
               onChange={(e) => handleInputChange(e, setBranSample)}
-              className="w-full bg-slate-50 border border-slate-300 text-gray-900 text-lg rounded-xl focus:ring-blue-500 focus:border-blue-500 block p-4 shadow-sm transition-all outline-none"
+              className="w-full bg-white border border-slate-300 text-slate-800 text-2xl font-semibold rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 block p-4 shadow-sm transition-all outline-none text-center"
             />
           </div>
 
           <button
             onClick={handleCalculate}
-            className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-lg px-5 py-4 text-center transition-colors shadow-lg shadow-blue-700/30 uppercase tracking-wide mt-2"
+            className="w-full text-white bg-[#3b4e8d] hover:bg-[#2d3b6b] focus:ring-4 focus:ring-blue-300 font-black rounded-xl text-lg px-5 py-5 text-center transition-all shadow-lg shadow-blue-900/20 uppercase tracking-widest mt-2 active:scale-[0.98]"
           >
-            Calcular
+            Calcular Rendimento
           </button>
         </div>
 
         {/* Results Section */}
         {results && (
-          <div className="mt-8 space-y-4 animate-fadeIn">
+          <div ref={resultsRef} className="mt-10 animate-fadeIn space-y-8 scroll-mt-6">
+            
+            <div className="flex items-center justify-center relative">
+               <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t border-slate-300"></div>
+               </div>
+               <div className="relative flex justify-center">
+                  <span className="bg-white px-4 text-sm text-slate-500 font-bold uppercase tracking-widest">Relatório de Produção</span>
+               </div>
+            </div>
+
             {/* Row 1: Products */}
             <div className="grid grid-cols-2 gap-4">
               <ResultCard
-                label="Farinha por hora"
+                label="Farinha / Hora"
                 value={`${formatNumber(results.flourPerHour)}`}
                 unit="kg/h"
                 colorTheme="blue"
               />
               <ResultCard
-                label="Farelo por hora"
+                label="Farelo / Hora"
                 value={`${formatNumber(results.branPerHour)}`}
                 unit="kg/h"
                 colorTheme="red"
@@ -147,34 +163,37 @@ export const Calculator: React.FC = () => {
             {/* Row 2: Total & Yield */}
             <div className="grid grid-cols-2 gap-4">
                <ResultCard
-                label="Total por hora"
+                label="Total Processado"
                 value={`${formatNumber(results.totalPerHour)}`}
                 unit="kg/h"
                 colorTheme="green"
               />
               <ResultCard
-                label="Rendimento % de Farinha"
+                label="Rendimento Final"
                 value={`${results.yieldPercentage.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`}
                 unit=""
                 colorTheme="yellow"
               />
             </div>
 
-            {/* Visual Chart */}
-            <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col items-center">
-               <h3 className="text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">Distribuição</h3>
-               <div className="h-40 w-full">
+            {/* Visual Chart - Donut with Center Text */}
+            <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex flex-col items-center relative overflow-hidden">
+               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Gráfico de Rendimento</h3>
+               
+               <div className="relative h-72 w-full flex items-center justify-center">
                  <ResponsiveContainer width="100%" height="100%">
                    <PieChart>
                      <Pie
                        data={chartData}
                        cx="50%"
                        cy="50%"
-                       innerRadius={40}
-                       outerRadius={60}
-                       fill="#8884d8"
-                       paddingAngle={5}
+                       innerRadius={85}
+                       outerRadius={115}
+                       paddingAngle={0}
                        dataKey="value"
+                       startAngle={90}
+                       endAngle={-270}
+                       stroke="none"
                      >
                        {chartData.map((entry, index) => (
                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -182,12 +201,38 @@ export const Calculator: React.FC = () => {
                      </Pie>
                      <Tooltip 
                        formatter={(value: number) => [`${formatNumber(value)} kg/h`, 'Produção']}
-                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                       itemStyle={{ color: '#1e293b', fontWeight: 600 }}
                      />
                    </PieChart>
                  </ResponsiveContainer>
+
+                 {/* Center Content Overlay */}
+                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">Farinha</span>
+                    <span className="text-5xl font-black text-[#3b4e8d] tracking-tighter">
+                      {results.yieldPercentage.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                      <span className="text-2xl align-top">%</span>
+                    </span>
+                    <span className="text-xs font-medium text-slate-400 mt-2 bg-slate-100 px-2 py-1 rounded-md">
+                      Rendimento Real
+                    </span>
+                 </div>
+               </div>
+
+               {/* Legend */}
+               <div className="flex w-full justify-center gap-6 mt-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#2563EB]"></div>
+                    <span className="text-sm font-semibold text-slate-600">Farinha</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-[#F87171]"></div>
+                    <span className="text-sm font-semibold text-slate-600">Farelo</span>
+                  </div>
                </div>
             </div>
+
           </div>
         )}
     </div>
