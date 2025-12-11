@@ -32,18 +32,18 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentUser, onBack, o
     }
   };
 
-  const formatDate = (timestamp: any) => {
-    if (!timestamp || !timestamp.toDate) return "Data desconhecida";
-    return timestamp.toDate().toLocaleString('pt-BR', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
+  const formatDateParts = (timestamp: any) => {
+    if (!timestamp || !timestamp.toDate) return { date: "--/--/----", time: "--:--" };
+    const dateObj = timestamp.toDate();
+    const date = dateObj.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const time = dateObj.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return { date, time };
   };
 
   return (
     <div className="w-full px-4 pb-8 animate-fadeIn">
       {/* Header */}
-      <div className="flex items-center mb-8 pt-2">
+      <div className="flex items-center mb-6 pt-2">
         <button 
           onClick={onBack}
           className="mr-4 p-3 bg-white shadow-md shadow-slate-200/50 border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all active:scale-95"
@@ -80,7 +80,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentUser, onBack, o
           </button>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
            {loading ? (
              <div className="flex flex-col items-center py-20 text-slate-400">
                <div className="w-10 h-10 border-4 border-slate-200 border-t-[#3b4e8d] rounded-full animate-spin mb-4"></div>
@@ -98,69 +98,85 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentUser, onBack, o
              history.map((item) => {
                const flourKgH = item.flour * 360;
                const branKgH = item.bran * 360;
+               const { date, time } = formatDateParts(item.date);
 
                return (
-               <div key={item.id} className="bg-white p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01]">
+               <div key={item.id} className="bg-white p-5 rounded-[1.5rem] shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
                  
-                 {/* Top Row: Date & Yield Badge */}
-                 <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 {/* 1. Header: Date Block (Unified) */}
+                 <div className="flex justify-between items-center bg-slate-100/80 rounded-xl px-4 py-2 mb-5">
+                    <div className="flex items-center gap-2">
+                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                          {formatDate(item.date)}
-                        </span>
+                       </svg>
+                       <span className="text-sm font-black text-slate-700 tracking-wide">
+                          {date}
+                       </span>
+                    </div>
+                    <span className="text-xs font-bold text-slate-400 bg-white px-2 py-0.5 rounded-md shadow-sm">
+                       {time}
+                    </span>
+                 </div>
+
+                 {/* 2. Main Content Block */}
+                 <div className="flex items-center justify-between gap-4">
+                    
+                    {/* Left: Data (Stacked cleanly) */}
+                    <div className="flex flex-col gap-4 flex-1">
+                        
+                        {/* Farinha Row */}
+                        <div className="flex flex-col">
+                            <div className="flex items-center gap-2 mb-0.5">
+                                <div className="w-1.5 h-3 bg-blue-500 rounded-full"></div>
+                                <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">
+                                    Farinha
+                                </span>
+                            </div>
+                            <div className="pl-3.5">
+                                <span className="text-2xl font-black text-slate-800 tracking-tighter leading-none">
+                                    {Math.round(flourKgH).toLocaleString('pt-BR')}
+                                </span>
+                                <span className="text-xs font-bold text-slate-400 ml-1">kg/h</span>
+                            </div>
+                        </div>
+
+                        {/* Farelo Row */}
+                        <div className="flex flex-col">
+                            <div className="flex items-center gap-2 mb-0.5">
+                                <div className="w-1.5 h-3 bg-red-400 rounded-full"></div>
+                                <span className="text-[10px] font-black text-red-400 uppercase tracking-widest">
+                                    Farelo
+                                </span>
+                            </div>
+                            <div className="pl-3.5">
+                                <span className="text-2xl font-black text-slate-800 tracking-tighter leading-none">
+                                    {Math.round(branKgH).toLocaleString('pt-BR')}
+                                </span>
+                                <span className="text-xs font-bold text-slate-400 ml-1">kg/h</span>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div className="text-right">
-                        <div className="flex items-baseline justify-end">
-                            <span className="text-4xl font-black text-emerald-500 tracking-tighter leading-none filter drop-shadow-sm">
+                    {/* Middle Divider */}
+                    <div className="w-px h-20 bg-slate-100"></div>
+
+                    {/* Right: Yield (Prominent) */}
+                    <div className="flex flex-col items-end justify-center min-w-[100px]">
+                        <div className="flex items-baseline">
+                            <span className="text-4xl font-black text-emerald-500 tracking-tighter leading-none">
                                 {item.yieldPercentage.toFixed(1)}
                             </span>
                             <span className="text-lg font-bold text-emerald-400 ml-0.5">%</span>
                         </div>
-                        <div className="text-[10px] font-black text-emerald-300 uppercase tracking-widest mt-1">
-                            Rendimento
+                        <div className="mt-2 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                             <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest block text-center">
+                                Rendimento
+                             </span>
                         </div>
                     </div>
                  </div>
 
-                 {/* Divider Line */}
-                 <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent mb-6 opacity-60"></div>
-                 
-                 {/* Data Cards Row */}
-                 <div className="grid grid-cols-2 gap-4">
-                    
-                    {/* Farinha Block */}
-                    <div className="bg-blue-50/50 rounded-3xl p-5 border border-blue-100/50 relative group">
-                        <div className="absolute left-0 top-6 w-1.5 h-12 bg-blue-500 rounded-r-full"></div>
-                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-1 pl-3">
-                            Farinha
-                        </p>
-                        <div className="pl-2">
-                             <span className="text-3xl font-black text-slate-800 tracking-tighter block leading-none">
-                                {Math.round(flourKgH).toLocaleString('pt-BR')}
-                             </span>
-                             <span className="text-xs font-bold text-slate-400 mt-1 block">kg/h</span>
-                        </div>
-                    </div>
-
-                    {/* Farelo Block */}
-                    <div className="bg-red-50/50 rounded-3xl p-5 border border-red-100/50 relative">
-                        <div className="absolute left-0 top-6 w-1.5 h-12 bg-red-400 rounded-r-full"></div>
-                        <p className="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-1 pl-3">
-                            Farelo
-                        </p>
-                        <div className="pl-2">
-                             <span className="text-3xl font-black text-slate-800 tracking-tighter block leading-none">
-                                {Math.round(branKgH).toLocaleString('pt-BR')}
-                             </span>
-                             <span className="text-xs font-bold text-slate-400 mt-1 block">kg/h</span>
-                        </div>
-                    </div>
-
-                 </div>
                </div>
              )})
            )}
