@@ -80,29 +80,44 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentUser, onBack, o
                Nenhuma extração salva encontrada.
              </div>
            ) : (
-             history.map((item) => (
-               <div key={item.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center transition-transform hover:scale-[1.01]">
-                 <div>
-                   <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">
+             history.map((item) => {
+               // Cálculo de Produção Hora (Sample * 6 * 60 = 360)
+               // Assume que o valor salvo é a amostra em kg
+               const flourKgH = item.flour * 360;
+               const branKgH = item.bran * 360;
+
+               return (
+               <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center transition-transform hover:scale-[1.01]">
+                 <div className="flex flex-col gap-2">
+                   <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-0.5">
                      {formatDate(item.date)}
                    </p>
-                   <div className="flex gap-3 text-sm text-slate-600">
-                      <span>F: <b>{Math.round(item.flour).toLocaleString('pt-BR')}kg</b></span>
-                      <span className="text-slate-300">|</span>
-                      <span>B: <b>{Math.round(item.bran).toLocaleString('pt-BR')}kg</b></span>
+                   
+                   <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2 text-sm text-slate-700">
+                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                         <span className="text-xs font-semibold text-slate-500 uppercase w-14">Farinha</span>
+                         <span className="font-bold text-slate-800">{Math.round(flourKgH).toLocaleString('pt-BR')} kg/h</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-sm text-slate-700">
+                         <div className="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                         <span className="text-xs font-semibold text-slate-500 uppercase w-14">Farelo</span>
+                         <span className="font-bold text-slate-800">{Math.round(branKgH).toLocaleString('pt-BR')} kg/h</span>
+                      </div>
                    </div>
                  </div>
                  
-                 <div className="flex flex-col items-end">
-                    <span className="text-2xl font-black text-[#3b4e8d]">
+                 <div className="flex flex-col items-end pl-4 border-l border-slate-100 ml-2 min-w-[80px]">
+                    <span className="text-xl font-black text-[#3b4e8d]">
                       {item.yieldPercentage.toFixed(1)}%
                     </span>
-                    <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold uppercase">
+                    <span className="text-[9px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold uppercase text-center mt-1">
                       Rendimento
                     </span>
                  </div>
                </div>
-             ))
+             )})
            )}
         </div>
       )}
