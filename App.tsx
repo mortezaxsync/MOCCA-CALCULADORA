@@ -26,7 +26,7 @@ const App: React.FC = () => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
     });
-
+    
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       unsubscribe();
@@ -37,16 +37,35 @@ const App: React.FC = () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
-    setShowInstallBtn(false);
+    if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setShowInstallBtn(false);
+    }
   };
 
   return (
-    // Removido py-6 sm:py-12 para usar melhor a tela do celular
     <div className="min-h-screen bg-slate-200 flex flex-col items-center justify-start pt-4 pb-4 px-4 sm:justify-center">
+      
       <div className="w-full max-w-md mx-auto">
         {/* Main Card Container */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden relative min-h-[85vh] flex flex-col">
+            
+            {/* Top Bar - Apenas botão de Instalar (se disponível) */}
+            <div className="absolute top-4 right-4 z-10 flex gap-2">
+               {/* Install Button (Small icon version) */}
+               {showInstallBtn && (
+                 <button
+                    onClick={handleInstallClick}
+                    className="p-2 bg-blue-600 text-white rounded-full shadow-lg animate-bounce"
+                    aria-label="Instalar App"
+                 >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                 </button>
+               )}
+            </div>
+
             <div className="pt-8 px-8 shrink-0">
                  <Logo />
             </div>
@@ -68,17 +87,27 @@ const App: React.FC = () => {
             </div>
         </div>
         
-        {/* Install Button - Only shows if browser supports installation */}
-        {showInstallBtn && currentView === 'calculator' && (
-          <button
-            onClick={handleInstallClick}
-            className="mt-6 w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 px-6 rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all transform active:scale-95 mb-safe"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            INSTALAR APLICATIVO
-          </button>
+        {/* Install Banner - Bottom Floating if not installed */}
+        {showInstallBtn && (
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 flex items-center justify-between md:hidden animate-fadeIn">
+            <div className="flex items-center gap-3">
+               <div className="bg-[#3b4e8d] p-2 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+               </div>
+               <div className="text-sm">
+                  <p className="font-bold text-slate-800">Instalar Mocca App</p>
+                  <p className="text-xs text-slate-500">Adicione à sua tela inicial</p>
+               </div>
+            </div>
+            <button
+                onClick={handleInstallClick}
+                className="bg-[#3b4e8d] text-white text-sm font-bold py-2 px-4 rounded-lg"
+            >
+                INSTALAR
+            </button>
+          </div>
         )}
 
         <p className="text-center text-slate-400 text-xs mt-6 mb-safe pb-2">

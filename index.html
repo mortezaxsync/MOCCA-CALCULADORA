@@ -30,7 +30,23 @@
         padding-bottom: env(safe-area-inset-bottom);
         padding-left: env(safe-area-inset-left);
         padding-right: env(safe-area-inset-right);
+        
+        /* NATIVE FEEL: Desabilita seleção de texto como em um app real */
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        
+        /* Remove o highlight azul ao tocar em botões no Android/Chrome */
+        -webkit-tap-highlight-color: transparent;
       }
+      
+      /* Permite seleção apenas em inputs */
+      input, textarea {
+        user-select: text;
+        -webkit-user-select: text;
+      }
+
       .font-stencil {
         font-family: 'Allerta Stencil', sans-serif;
       }

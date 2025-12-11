@@ -78,7 +78,7 @@ export const Calculator: React.FC<CalculatorProps> = ({ onShowHistory, currentUs
 
     let user = currentUser;
 
-    // Se não estiver logado, tenta logar
+    // Se não estiver logado, tenta logar diretamente
     if (!user) {
       user = await signInWithGoogle();
       if (user) {
@@ -110,7 +110,8 @@ export const Calculator: React.FC<CalculatorProps> = ({ onShowHistory, currentUs
     if (success) {
       alert("Extração salva na nuvem com sucesso!");
     } else {
-      alert("Erro ao salvar. Verifique sua conexão.");
+      // Se falhar (ex: falta de configuração no código), mostra msg genérica
+      alert("Erro ao salvar. Verifique a conexão.");
     }
   };
 

@@ -1,47 +1,22 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, User } from "firebase/auth";
-import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, Timestamp, enableIndexedDbPersistence } from "firebase/firestore";
+import { getFirestore, collection, addDoc, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
 
-// --- CONFIGURAÇÃO DO FIREBASE ---
-// IMPORTANTE: Para o app funcionar no seu celular, você DEVE criar um projeto no Firebase
-// e colar suas chaves reais abaixo.
-// Link: https://console.firebase.google.com/
+// --- CONFIGURAÇÃO PROJETO MOCCA ---
 const firebaseConfig = {
-  apiKey: "AIzaSyD-YOUR_ACTUAL_API_KEY_HERE",
-  authDomain: "your-project-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project-id.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
+  apiKey: "AIzaSyBjWF7a0TR7cYzYELSgFt4Qv8m8Nj_rowY",
+  authDomain: "mocca-62337.firebaseapp.com",
+  projectId: "mocca-62337",
+  storageBucket: "mocca-62337.firebasestorage.app",
+  messagingSenderId: "673316672390",
+  appId: "1:673316672390:web:9c7d8b05bce014e5a8d207",
+  measurementId: "G-21LHQGYK88"
 };
 
-// Validação simples para evitar erro silencioso se o usuário não configurar
-const isConfigured = firebaseConfig.apiKey.includes("YOUR_ACTUAL_API_KEY");
-
-if (isConfigured) {
-  console.warn("⚠️ ALERTA: As chaves do Firebase não foram configuradas. O login e salvamento não funcionarão.");
-}
-
-// Initialize Firebase
+// Inicialização Direta
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Tenta habilitar cache offline (útil para apps mobile)
-// Nota: Em alguns ambientes de navegador restritos, isso pode falhar, então usamos catch.
-try {
-  // enableIndexedDbPersistence(db).catch((err) => {
-  //   if (err.code == 'failed-precondition') {
-  //       console.log('Múltiplas abas abertas, persistência habilitada apenas em uma.');
-  //   } else if (err.code == 'unimplemented') {
-  //       console.log('Navegador não suporta persistência offline.');
-  //   }
-  // });
-  // Comentado pois imports via CDN as vezes tem problemas com persistência explícita dependendo da versão,
-  // mas o Firestore padrão já gerencia cache em memória muito bem.
-} catch (e) {
-  console.log("Persistência offline não suportada neste ambiente.");
-}
+export const auth = getAuth(app);
+export const db = getFirestore(app);
 
 const provider = new GoogleAuthProvider();
 
@@ -50,7 +25,7 @@ export interface SavedExtraction {
   flour: number;
   bran: number;
   yieldPercentage: number;
-  date: Timestamp; // Firestore timestamp
+  date: Timestamp;
   userId: string;
 }
 
@@ -58,24 +33,17 @@ export interface SavedExtraction {
 
 // 1. Login com Google
 export const signInWithGoogle = async (): Promise<User | null> => {
-  if (isConfigured) {
-    alert("ERRO DE CONFIGURAÇÃO:\n\nVocê precisa configurar as chaves do Firebase no arquivo firebase.ts antes de fazer login.\n\nSubstitua 'YOUR_ACTUAL_API_KEY_HERE' pelas chaves do seu projeto no console.firebase.google.com");
-    return null;
-  }
   try {
     const result = await signInWithPopup(auth, provider);
     return result.user;
   } catch (error: any) {
     console.error("Erro no login:", error);
-    alert(`Erro ao conectar com Google: ${error.message}`);
     return null;
   }
 };
 
 // 2. Salvar Extração
 export const saveExtraction = async (user: User, data: { flour: number, bran: number, yieldPercentage: number }) => {
-  if (isConfigured) return false;
-  
   try {
     await addDoc(collection(db, "extractions"), {
       userId: user.uid,
@@ -93,10 +61,7 @@ export const saveExtraction = async (user: User, data: { flour: number, bran: nu
 
 // 3. Buscar Histórico
 export const getHistory = async (user: User): Promise<SavedExtraction[]> => {
-  if (isConfigured) return [];
-
   try {
-    // Tenta a query com ordenação
     const q = query(
       collection(db, "extractions"), 
       where("userId", "==", user.uid),
@@ -113,29 +78,24 @@ export const getHistory = async (user: User): Promise<SavedExtraction[]> => {
     return history;
   } catch (error: any) {
     console.error("Erro ao buscar histórico:", error);
-    
-    // Fallback: Se falhar por falta de índice (erro comum 'failed-precondition'), 
-    // tenta buscar sem ordenar e ordena no cliente.
-    if (error.code === 'failed-precondition' || error.message.includes('index')) {
-        console.warn("Índice faltando. Tentando busca sem ordenação no servidor...");
-        try {
-            const qFallback = query(
-                collection(db, "extractions"), 
-                where("userId", "==", user.uid)
-            );
-            const snapshot = await getDocs(qFallback);
-            const history: SavedExtraction[] = [];
-            snapshot.forEach((doc) => {
-                history.push({ id: doc.id, ...doc.data() } as SavedExtraction);
-            });
-            // Ordena via Javascript
-            return history.sort((a, b) => b.date.seconds - a.date.seconds);
-        } catch (e) {
-            return [];
-        }
-    }
     return [];
   }
 };
 
-export { auth };
+// Helper de compatibilidade (sempre retorna true pois as chaves estão no código)
+export const isFirebaseReady = () => true;
+
+// Funções para ConfigModal
+export const saveFirebaseConfiguration = (config: string) => {
+  try {
+    localStorage.setItem('mocca_custom_firebase_config', config);
+    return true;
+  } catch (e) {
+    console.error("Erro ao salvar configuração", e);
+    return false;
+  }
+};
+
+export const resetFirebaseConfiguration = () => {
+  localStorage.removeItem('mocca_custom_firebase_config');
+};
