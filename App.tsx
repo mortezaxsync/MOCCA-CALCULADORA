@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Logo } from './components/Logo';
 import { Calculator } from './components/Calculator';
 import { HistoryView } from './components/HistoryView';
+import { SplashScreen } from './components/SplashScreen';
 import { auth } from './firebase';
 import { User, onAuthStateChanged } from 'firebase/auth';
 
@@ -12,8 +13,14 @@ const App: React.FC = () => {
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [currentView, setCurrentView] = useState<ViewState>('calculator');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
+    // Timer para a Tela de Abertura (2.5 segundos)
+    const splashTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+
     // PWA Install Prompt Logic
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
@@ -28,6 +35,7 @@ const App: React.FC = () => {
     });
     
     return () => {
+      clearTimeout(splashTimer);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       unsubscribe();
     };
@@ -43,8 +51,13 @@ const App: React.FC = () => {
     }
   };
 
+  // Se estiver mostrando o Splash, renderiza apenas ele
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+
   return (
-    <div className="min-h-screen bg-slate-200 flex flex-col items-center justify-start pt-4 pb-4 px-4 sm:justify-center">
+    <div className="min-h-screen bg-slate-200 flex flex-col items-center justify-start pt-4 pb-4 px-4 sm:justify-center animate-fadeIn">
       
       <div className="w-full max-w-md mx-auto">
         {/* Main Card Container */}

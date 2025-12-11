@@ -39,13 +39,19 @@ export const signInWithGoogle = async (): Promise<User | null> => {
   } catch (error: any) {
     console.error("Erro no login:", error);
     
+    const errorCode = error.code || '';
+    const errorMessage = error.message || '';
+    const fullError = `${errorCode} ${errorMessage}`;
+
     // Tratamento de erros comuns para feedback visual
-    if (error.code === 'auth/unauthorized-domain') {
-      alert("ERRO DE DOMÍNIO:\nEste site (vercel.app) não está autorizado no Firebase.\n\nAcesse o Console do Firebase -> Authentication -> Settings -> Authorized Domains e adicione este domínio.");
-    } else if (error.code === 'auth/popup-closed-by-user') {
+    if (fullError.includes('unauthorized-domain')) {
+      alert("ERRO DE DOMÍNIO:\nEste site não está autorizado no Firebase.\n\nAcesse o Console do Firebase -> Authentication -> Settings -> Authorized Domains e adicione este domínio (ex: mocca-calculadora.vercel.app).");
+    } else if (fullError.includes('configuration-not-found')) {
+      alert("⚠️ AÇÃO NECESSÁRIA NO FIREBASE:\n\nO Login Google está DESATIVADO.\n\n1. Vá no Console do Firebase > Authentication\n2. Clique na aba 'Sign-in method'\n3. Adicione/Edite 'Google'\n4. Ative a chave 'Ativar'\n5. Salve com seu email de suporte.");
+    } else if (errorCode === 'auth/popup-closed-by-user') {
       // Usuário fechou a janela, não precisa alertar
     } else {
-      alert(`Erro ao fazer login Google:\n${error.message}`);
+      alert(`Erro ao fazer login Google:\n${errorMessage}`);
     }
     
     return null;
