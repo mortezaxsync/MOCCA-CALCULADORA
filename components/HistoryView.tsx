@@ -80,7 +80,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentUser, onBack, o
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
            {loading ? (
              <div className="flex flex-col items-center py-20 text-slate-400">
                <div className="w-10 h-10 border-4 border-slate-200 border-t-[#3b4e8d] rounded-full animate-spin mb-4"></div>
@@ -101,21 +101,31 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentUser, onBack, o
                const { date, time } = formatDateParts(item.date);
 
                return (
-               <div key={item.id} className="bg-white p-5 rounded-[1.5rem] shadow-sm border border-slate-100 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]">
+               <div key={item.id} className="bg-slate-50 p-5 rounded-[2rem] border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-lg hover:bg-slate-100 hover:scale-[1.01]">
                  
-                 {/* 1. Header: Date Block (Unified) */}
-                 <div className="flex justify-between items-center bg-slate-100/80 rounded-xl px-4 py-2 mb-5">
+                 {/* 1. Header Row */}
+                 <div className="flex justify-between items-center mb-6 pb-2 border-b border-slate-200/60">
+                    {/* Date - Left */}
                     <div className="flex items-center gap-2">
-                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                       </svg>
-                       <span className="text-sm font-black text-slate-700 tracking-wide">
+                       <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100">
+                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                           </svg>
+                       </div>
+                       <span className="text-sm font-bold text-slate-600 tracking-wide">
                           {date}
                        </span>
                     </div>
-                    <span className="text-xs font-bold text-slate-400 bg-white px-2 py-0.5 rounded-md shadow-sm">
-                       {time}
-                    </span>
+
+                    {/* Time - Right & BIGGER */}
+                    <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                       <span className="text-2xl font-black text-slate-800 tracking-tight">
+                          {time}
+                       </span>
+                    </div>
                  </div>
 
                  {/* 2. Main Content Block */}
@@ -159,7 +169,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentUser, onBack, o
                     </div>
 
                     {/* Middle Divider */}
-                    <div className="w-px h-20 bg-slate-100"></div>
+                    <div className="w-px h-20 bg-slate-200"></div>
 
                     {/* Right: Yield (Prominent) */}
                     <div className="flex flex-col items-end justify-center min-w-[100px]">
@@ -169,7 +179,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ currentUser, onBack, o
                             </span>
                             <span className="text-lg font-bold text-emerald-400 ml-0.5">%</span>
                         </div>
-                        <div className="mt-2 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                        <div className="mt-2 bg-emerald-100/50 px-3 py-1 rounded-full border border-emerald-100">
                              <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest block text-center">
                                 Rendimento
                              </span>
