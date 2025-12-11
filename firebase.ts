@@ -38,6 +38,16 @@ export const signInWithGoogle = async (): Promise<User | null> => {
     return result.user;
   } catch (error: any) {
     console.error("Erro no login:", error);
+    
+    // Tratamento de erros comuns para feedback visual
+    if (error.code === 'auth/unauthorized-domain') {
+      alert("ERRO DE DOMÍNIO:\nEste site (vercel.app) não está autorizado no Firebase.\n\nAcesse o Console do Firebase -> Authentication -> Settings -> Authorized Domains e adicione este domínio.");
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      // Usuário fechou a janela, não precisa alertar
+    } else {
+      alert(`Erro ao fazer login Google:\n${error.message}`);
+    }
+    
     return null;
   }
 };
@@ -82,20 +92,9 @@ export const getHistory = async (user: User): Promise<SavedExtraction[]> => {
   }
 };
 
-// Helper de compatibilidade (sempre retorna true pois as chaves estão no código)
+// Helper de compatibilidade
 export const isFirebaseReady = () => true;
 
-// Funções para ConfigModal
-export const saveFirebaseConfiguration = (config: string) => {
-  try {
-    localStorage.setItem('mocca_custom_firebase_config', config);
-    return true;
-  } catch (e) {
-    console.error("Erro ao salvar configuração", e);
-    return false;
-  }
-};
-
-export const resetFirebaseConfiguration = () => {
-  localStorage.removeItem('mocca_custom_firebase_config');
-};
+// Funções legadas (mantidas para evitar erros de importação, mas vazias)
+export const saveFirebaseConfiguration = (config: string) => true;
+export const resetFirebaseConfiguration = () => {};
